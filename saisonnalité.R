@@ -1,54 +1,14 @@
 library(TSA)
 library(ggplot2)
 library(forecast)
-
-
+library(tsoutliers)
 library(dplyr)
 
-df_test_Storm <- df_Storm |> 
-  mutate(Date = paste0(Start.Year, "-", sprintf("%02d", Start.Month))) |> 
-  count(Date) |> 
-  arrange(Date)
+# transforamtion en ts ----
 
-# Convertir en format date pour mieux gérer les mois manquants
-df_test_Storm <- df_test_Storm |> 
-  mutate(Date = as.Date(paste0(Date, "-01"))) |> 
-  complete(Date = seq(min(Date), max(Date), by = "month"), fill = list(n = 0))
-
-
-print(df_test_Storm)
-
-
-Storm_ts <- ts(df_test_Storm$n, start = c(2000, 1), frequency = 12)
-
-decomp_Storm <- decompose(Storm_ts)   
-plot(decomp_Storm)
-
-###################################
-
-df_Cold <- `sub_df_Cold wave` |> 
-  mutate(Date = paste0(Start.Year, "-", sprintf("%02d", Start.Month))) |> 
-  count(Date) |> 
-  arrange(Date)
-
-df_Cold <- df_Cold |> 
-  mutate(Date = as.Date(paste0(Date, "-01"))) |> 
-  complete(Date = seq(min(Date), max(Date), by = "month"), fill = list(n = 0))
-
-print(df_Cold)
-
-
-Cold_ts <- ts(df_Cold$n, start = c(2000, 1), frequency = 12)
-
-decomp_Cold <- decompose(Cold_ts)   
-plot(decomp_Cold)
-
-
-#####################
-
-list_sub_acceptés <- c()
-list_sub_pas_acceptés <- c()
-
+dico_ts_acceptes <- list()  
+liste_acceptes <- c() 
+liste_sub_pas_acceptes <- c() 
 
 for (sub in seq_along(list_sub_df)) {
   
@@ -74,12 +34,25 @@ for (sub in seq_along(list_sub_df)) {
     
     Cold_ts <- ts(df_Cold$n, start = c(2000, 1), frequency = 12)
     
+    # Décomposer et afficher le graphique
     decomp_Cold <- decompose(Cold_ts)   
     plot(decomp_Cold)
     title(main = df_name)  # Ajouter un titre après le plot
-    list_sub_acceptés <- append(list_sub_acceptés, df_name) # liste des df a analysé
+    
+    # Ajouter la série ts au dictionnaire
+    dico_ts_acceptes[[sub]] <- Cold_ts
+    liste_acceptes <- append(liste_acceptes, df_name)
+    
   } else {
     message(paste("⚠️", df_name, "a moins de 50 observations et sera ignoré."))
-    list_sub_pas_acceptés <- append(list_sub_pas_acceptés, df_name)
+    
+    liste_sub_pas_acceptes <- append(liste_sub_pas_acceptes, df_name)
   }
 }
+
+
+
+# valeurs atypiques -----
+
+
+
