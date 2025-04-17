@@ -59,9 +59,9 @@ for (sub in seq_along(list_sub_df)) {
 
 ## dico_ts_acceptes[[1]] = ground_movement ----
 
-outliers_hail <- tso(dico_ts_acceptes[[1]]) 
-print(outliers_hail)
-plot(outliers_hail)
+outliers_ground <- tso(dico_ts_acceptes[[1]]) 
+print(outliers_ground)
+plot(outliers_ground)
 
 # trouver l'origine de cette valeur atypique
 window(dico_ts_acceptes[[1]], start = c(2012, 1), end = c(2014, 12))
@@ -69,7 +69,7 @@ plot(window(dico_ts_acceptes[[1]], start = c(2012, 1), end = c(2014, 12)))
 # C'est un séisme de magnitude 6.6 du 20 avril 2013
 
 ## Correction ----
-ts_ground_movement_corr <- outliers_hail$yadj
+ts_ground_movement_corr <- outliers_ground$yadj
 
 par(mfcol=c(1,2))
 plot(ts_ground_movement_corr)
@@ -79,9 +79,9 @@ plot(dico_ts_acceptes[[1]])
 
 ## dico_ts_acceptes[[3]] = Cold wave ----
 
-outliers_hail <- tso(dico_ts_acceptes[[3]]) 
-print(outliers_hail)
-plot(outliers_hail)
+outliers_cold <- tso(dico_ts_acceptes[[3]]) 
+print(outliers_cold)
+plot(outliers_cold)
 
 ### --------- Problème ---------- ## ----
 

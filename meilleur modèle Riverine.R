@@ -39,34 +39,34 @@ stats_desc <- function(data) {
 }
 
 
-ts_ground_movement_corr |> 
+ts_riverine_flood_corr |> 
   stats_desc()
 
-ts_ground_movement_corr |> 
+ts_riverine_flood_corr |> 
   boxplot()
 
 # Saisonnalité ? ----
 
-ts_ground_movement_corr |> 
+ts_riverine_flood_corr |> 
   decompose(, type = "additive") |> 
   plot()
 
-ts_ground_movement_corr |> 
+ts_riverine_flood_corr |> 
   decompose(, type = "multiplicative") |> 
   plot()
 
 
 # Test saisonnalité
 
-# summary(regarima_x13(ts_ground_movement_corr, spec ="RG5c"))
+# summary(regarima_x13(ts_riverine_flood_corr, spec ="RG5c"))
 
 
 library(TSA)
-dyy <- diff(ts_ground_movement_corr, differences = 1)
+dyy <- diff(ts_riverine_flood_corr, differences = 1)
 
 # Periodogramme
 par(mfrow=c(1,2))
-periodogram(ts_ground_movement_corr, main="Periodogramme sur la série en niveau")
+periodogram(ts_riverine_flood_corr, main="Periodogramme sur la série en niveau")
 periodogram(dyy, main="Periodogramme sur la série en différence première")
 
 
@@ -83,7 +83,7 @@ periodogram(dyy, main="Periodogramme sur la série en différence première")
 
 ####  StructTS ----
 
-fitsts = StructTS(ts_ground_movement_corr)
+fitsts = StructTS(ts_riverine_flood_corr)
 plot(cbind(fitted(fitsts), residuals(fitsts)))
 show(fitsts)
 
@@ -94,11 +94,11 @@ plot(prevsts)
 
 #### stlm ----
 
-decomp = stl(ts_ground_movement_corr, s.window="periodic")
+decomp = stl(ts_riverine_flood_corr, s.window="periodic")
 # show(decomp)
 plot(decomp)
 
-fitstl = stlm(ts_ground_movement_corr)
+fitstl = stlm(ts_riverine_flood_corr)
 
 prevstl <- forecast(fitstl,12) #période d'une année
 
@@ -112,7 +112,7 @@ summary(prevstl)
 
 myspec <- x13_spec("RSA5c")
 
-mysax13 <- x13(ts_ground_movement_corr, myspec)
+mysax13 <- x13(ts_riverine_flood_corr, myspec)
 
 summary(mysax13$regarima)
 
@@ -135,7 +135,7 @@ plot(forecast_x13)
 
 #### Holt-winters ----
 
-seasX <- seas(ts_ground_movement_corr)
+seasX <- seas(ts_riverine_flood_corr)
 cvs <- final(seasX)
 
 # lissage
@@ -174,7 +174,7 @@ show(fit)
 
 #### ETS ----
 
-fitets <- ets(ts_ground_movement_corr, ic = "aic") # pour avoir le meilleur AIC
+fitets <- ets(ts_riverine_flood_corr, ic = "aic") # pour avoir le meilleur AIC
 show(fitets)
 plot(fitets)
 
@@ -185,7 +185,7 @@ plot(prevets)
 
 #### TBATS ----
 
-fit_tbats <- tbats(ts_ground_movement_corr)
+fit_tbats <- tbats(ts_riverine_flood_corr)
 show(fit_tbats)
 plot(fit_tbats)
 
@@ -194,7 +194,7 @@ plot_prev_TBATS <- plot(prev_TBATS)
 
 #### ADAM ETS ----
 
-fit_ADAM_ETS <- auto.adam(ts_ground_movement_corr, model = "ZZZ", lags = c(1, 12), select = TRUE)
+fit_ADAM_ETS <- auto.adam(ts_riverine_flood_corr, model = "ZZZ", lags = c(1, 12), select = TRUE)
 # ZZZ car je ne spécifie rien (tendance, saisonnalité, erreur)
 fit_ADAM_ETS
 summary(fit_ADAM_ETS)
@@ -215,8 +215,8 @@ plot(prev_ADAM_ETS)
 
 #### ADAM ETS + SARIMA ----
 
-fitadam3 <- auto.adam(ts_ground_movement_corr, model="ZZZ", lags=c(1,12), orders=list(ar=c(3,3), i=(2),
-                                                                                            ma=c(3,3), select=TRUE))
+fitadam3 <- auto.adam(ts_riverine_flood_corr, model="ZZZ", lags=c(1,12), orders=list(ar=c(3,3), i=(2),
+                                                                                      ma=c(3,3), select=TRUE))
 fitadam3
 summary(fitadam3)
 
@@ -233,7 +233,7 @@ plot(prev_AES)
 
 #### SSARIMA ----
 
-fit_SSARIMA <- auto.ssarima(ts_ground_movement_corr, lags=c(1,12), orders=list(ar=c(3,3), i=(2), ma=c(3,3), select=TRUE))
+fit_SSARIMA <- auto.ssarima(ts_riverine_flood_corr, lags=c(1,12), orders=list(ar=c(3,3), i=(2), ma=c(3,3), select=TRUE))
 fit_SSARIMA
 
 par(mfcol=c(2,2))
@@ -247,7 +247,7 @@ plot(prev_SSARIMA)
 
 #-- 5. 1. 3. Modèle SARIMA(p, d, q)(P, D, Q)[12] ----------
 
-fit_sarima <- auto.arima(ts_ground_movement_corr, seasonal = TRUE)
+fit_sarima <- auto.arima(ts_riverine_flood_corr, seasonal = TRUE)
 
 # Affichage du modèle
 summary(fit_sarima)
@@ -263,8 +263,8 @@ plot(prev_SARIMA)
 
 # Affichage ----
 
-ts_freq_mens_cinema_2021 <- ts(ts_ground_movement_corr, 
-                               start = c(2025, 02), end =c(2026, 01),
+ts_freq_mens_cinema_2021 <- ts(ts_riverine_flood_corr, 
+                               start = c(2023, 02), end =c(2024, 01),
                                frequency = 12)
 
 library(ggplot2)
@@ -300,7 +300,7 @@ dfs <- list(
 df_all <- bind_rows(dfs)
 
 # Transformer la série temporelle en data frame pour ggplot
-ts_ground_movement_corr_df <- data.frame(
+ts_riverine_flood_corr_df <- data.frame(
   date = as.Date(time(ts_freq_mens_cinema_2021)),
   value = as.numeric(ts_freq_mens_cinema_2021),
   model = "Observed Data"
@@ -309,7 +309,7 @@ ts_ground_movement_corr_df <- data.frame(
 # Affichage avec mois formatés
 ggplot() +
   geom_line(data = df_all, aes(x = date, y = value, color = model), size = 1) +
-  geom_line(data = ts_ground_movement_corr_df, aes(x = date, y = value),
+  geom_line(data = ts_riverine_flood_corr_df, aes(x = date, y = value),
             linetype = "dashed", color = "black", size = 1) +
   labs(title = "Prévisions sur 12 mois par modèle",
        x = "Mois", y = "Valeur prévue", color = "Modèle") +
@@ -319,11 +319,11 @@ ggplot() +
         legend.position = "bottom")
 
 ## Qualité de prévision ----
-  
-  ## MSE & R²OOS
-  
-  # Exemple de données (à remplacer par vos données réelles)
-  actual_values <- ts_freq_mens_cinema_2021
+
+## MSE & R²OOS
+
+# Exemple de données (à remplacer par vos données réelles)
+actual_values <- ts_freq_mens_cinema_2021
 
 # Liste des prévisions pour chaque modèle
 forecasts <- list(
