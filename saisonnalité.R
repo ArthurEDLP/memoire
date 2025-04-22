@@ -57,4 +57,64 @@ for (sub in seq_along(list_sub_df)) {
 
 # valeurs atypiques -----
 
-## on n'y touche pas car les valeurs atypiques ont un sens
+## pas de problème de valeurs atypique car ici c'est normal
+
+# on ne va garder que les séries avec des données allant jusqu'en 2024, (càd comprenant tout 2023)
+
+ts_ground_movement <- dico_ts_acceptes[[1]] # s'arrête à 2025
+ts_Cold_wave <- dico_ts_acceptes[[3]] # s'arrête à 2024
+ts_heat_wave <- dico_ts_acceptes[[4]] # s'arrête à 2024
+ts_severe_winter_conditions <- dico_ts_acceptes[[5]] # s'arrête à 2017
+ts_riverine_flood <- dico_ts_acceptes[[6]]  # s'arrête à 2023
+ts_flash_flood <- dico_ts_acceptes[[7]]  # s'arrête à 2025
+ts_flood <- dico_ts_acceptes[[9]]  # s'arrête à 2025
+ts_landslide_wet <- dico_ts_acceptes[[10]]  # s'arrête à 2025
+ts_avalanche_wet <- dico_ts_acceptes[[12]]  # s'arrête à 2025
+ts_storm <- dico_ts_acceptes[[15]]  # s'arrête à 2025
+ts_tornado <- dico_ts_acceptes[[16]]  # s'arrête à 2024
+ts_blizzard <- dico_ts_acceptes[[17]]  # s'arrête à 2025
+ts_tropical_cyclone <- dico_ts_acceptes[[18]]  # s'arrête à 2025
+ts_hail <- dico_ts_acceptes[[19]]  # s'arrête à 2024
+ts_severe_weather <- dico_ts_acceptes[[20]]  # s'arrête à 2024
+ts_thunderstorms <- dico_ts_acceptes[[21]]  # s'arrête à 2023
+ts_extra_tropical <- dico_ts_acceptes[[23]]  # s'arrête à 2021
+ts_forest_fire <- dico_ts_acceptes[[27]]  # s'arrête à 2025
+ts_wildfire <- dico_ts_acceptes[[28]]  # s'arrête à 2018
+
+liste_des_séries <- c(
+  "ts_ground_movement", 
+  "ts_Cold_wave", 
+  "ts_heat_wave", 
+  "ts_flash_flood", 
+  "ts_flood", 
+  "ts_landslide_wet", 
+  "ts_avalanche_wet", 
+  "ts_storm", 
+  "ts_tornado", 
+  "ts_blizzard", 
+  "ts_tropical_cyclone", 
+  "ts_hail", 
+  "ts_severe_weather", 
+  "ts_forest_fire"
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
