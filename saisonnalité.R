@@ -1,12 +1,10 @@
-library(TSA)
-library(ggplot2)
-library(forecast)
-library(tsoutliers)
-library(dplyr)
-library(tidyverse)
-library(anomalize)
-library(tibbletime)
-library(tidyquant)
+library(ggplot2)       
+library(forecast)      
+library(tsoutliers)    
+library(dplyr)         
+library(tidyr)         
+library(zoo)           
+library(seastests)
 
 # transforamtion en ts ----
 
@@ -98,18 +96,136 @@ liste_des_séries <- c(
   "ts_forest_fire"
 )
 
+# tests de saisonnalité: ----
+for (sub in seq_along(liste_des_séries)) {
+  
+  df_name <- liste_des_séries[[sub]]  # Récupère le nom du dataframe (string)
+  df <- get(df_name)
+  
+  month <- cycle(df)
+  print(df_name)
+  print(kruskal.test(as.numeric(df) ~ factor(month)))
+  print(combined_test(df))
+  
+  dyy <- diff(df, differences = 1)
+  periodogram(dyy, main=paste("Periodogramme sur la série en différence première", df_name))
+  
+  
+}
+
+# doute sur 3 séries je fais des tests supplémentaires ----
+## ts_flood
+
+month <- cycle(ts_flood)
+friedman.test(matrix(ts_flood, ncol = 12, byrow = TRUE))
+
+
+library(forecast)
+auto.arima(ts_flood, seasonal = FALSE)  # sans saisonnalité
+auto.arima(ts_flood, seasonal = TRUE)   # avec saisonnalité
+
+
+decompo <- stl(ts_flood, s.window = "periodic")
+plot(decompo)
+
+## ts_landslide_wet
+
+month <- cycle(ts_landslide_wet)
+friedman.test(matrix(ts_landslide_wet, ncol = 12, byrow = TRUE))
+
+
+auto.arima(ts_landslide_wet, seasonal = FALSE)  # sans saisonnalité
+auto.arima(ts_landslide_wet, seasonal = TRUE)   # avec saisonnalité
+
+
+decompo <- stl(ts_landslide_wet, s.window = "periodic")
+plot(decompo)
+
+## ts_storm
+
+month <- cycle(ts_storm)
+friedman.test(matrix(ts_storm, ncol = 12, byrow = TRUE))
+
+
+auto.arima(ts_storm, seasonal = FALSE)  # sans saisonnalité
+auto.arima(ts_storm, seasonal = TRUE)   # avec saisonnalité
+
+
+decompo <- stl(ts_storm, s.window = "periodic")
+plot(decompo)
+
+# Conclusion:
+
+## Même si les glissements de terrain sont liés à la météo,
+## leur comportement n'est pas assez saisonnier pour être traité comme des feux de forêts.
+
+
+# Saisonnière:
+saison <- c(
+  "ts_Cold_wave", 
+  "ts_heat_wave", 
+  "ts_flash_flood", 
+  "ts_flood", 
+  "ts_avalanche_wet", 
+  "ts_storm", 
+  "ts_tornado", 
+  "ts_blizzard", 
+  "ts_tropical_cyclone", 
+  "ts_hail", 
+  "ts_severe_weather", 
+  "ts_forest_fire"
+)
+
+# Non Saisonnière:
+
+non_saison <- c(
+  "ts_ground_movement", 
+  "ts_landslide_wet"
+)
 
 
 
+colnames(castrophes_naturelles) #Disaster Subtype
+
+
+library(dplyr)
+
+# Liste des sous-types de désastres à conserver
+sous_types <- c(
+  "Ground movement", "Cold wave", "Heat wave", 
+  "Flash flood", "Flood (General)", "Landslide (wet)", 
+  "Avalanche (wet)", "Storm (General)", "Tornado", 
+  "Blizzard/Winter storm", "Tropical cyclone", "Hail", 
+  "Severe weather", "Forest fire"
+)
+
+# Filtrage de la base de données
+catastrophes_filtrees <- castrophes_naturelles %>%
+  filter(`Disaster Subtype` %in% sous_types)
+
+df_catastrophes_filtrees <- data.frame(catastrophes_filtrees)
+
+df_catastrophes_filtrees <- df_catastrophes_filtrees |>
+  mutate(
+    Start.Month = coalesce(Start.Month, End.Month),  # Remplace NA par End.Month
+    Date = paste0(Start.Year, "-", sprintf("%02d", Start.Month))
+  ) |>
+  group_by(Date) |>
+  summarize(count = n()) |>
+  arrange(Date)
 
 
 
+ts_catastrophes_filtrees_2000_2025 <- ts(df_catastrophes_filtrees$count, start = c(2000, 1), frequency = 12)
+
+plot(ts_catastrophes_filtrees_2000_2025)
+
+ts_catastrophes_2020_2023 <- ts(df_catastrophes_filtrees$count, start = c(2000, 1), end = c(2023, 12), frequency = 12)
+# on s'arrête en 2023 car toutes les données ne vont pas jusqu'en 2025, 
+# mais elles vont toutes jusqu'en 2023
 
 
-
-
-
-
+plot(ts_catastrophes_2020_2023)
 
 
 
