@@ -3,7 +3,16 @@ castrophes_naturelles <- read_excel("castrophes naturelles.xlsx")
 
 df <- data.frame(castrophes_naturelles)
 
+
 library(tidyverse)
+
+library(ggplot2)       
+library(forecast)      
+library(tsoutliers)    
+library(dplyr)         
+library(tidyr)         
+library(zoo)           
+library(seastests)
 
 
 list_types <- df |> 
@@ -17,27 +26,6 @@ print(list_types)
 for (i in seq_along(list_types)) {
   # Le nom de chaque dataframe sera basé sur la valeur de Disaster.Type
   assign(paste0("df_", unique(list_types[[i]]$Disaster.Type)), list_types[[i]])
-}
-
-
-library(dplyr)
-
-# Liste des noms des dataframes créés
-df_names <- ls(pattern = "^df_")
-
-# Pour chaque dataframe, on applique count() et arrange()
-for (df_name in df_names) {
-  # On récupère le dataframe en utilisant get()
-  df <- get(df_name)
-  
-  # Appliquer count() et arrange() sur le dataframe
-  result <- df |>
-    count(Country) |>
-    arrange(desc(n))
-  
-  # Afficher le résultat ou l'assigner à une nouvelle variable
-  print(paste("Résultats pour", df_name))
-  print(result)
 }
 
 # Je ne garde que les df avec suffisament d'observations
@@ -79,13 +67,7 @@ for (i in seq_along(list_keep)) {
 }
 
 
-library(ggplot2)       
-library(forecast)      
-library(tsoutliers)    
-library(dplyr)         
-library(tidyr)         
-library(zoo)           
-library(seastests)
+
 
 # transforamtion en ts + garder que les séries avec plus de 50 obs----
 
@@ -106,8 +88,8 @@ for (sub in seq_along(list_sub_df)) {
         Start.Month = coalesce(Start.Month, End.Month),  # Remplace NA par End.Month
         Date = paste0(Start.Year, "-", sprintf("%02d", Start.Month))
       ) |> 
-      count(Date) |> 
-      arrange(Date)
+      count(Date) |>
+        arrange(Date)
     
     if (!all(is.na(df_Cold$Date))) {
       df_Cold <- df_Cold |> 
@@ -115,7 +97,7 @@ for (sub in seq_along(list_sub_df)) {
         complete(Date = seq(min(Date, na.rm = TRUE), max(Date, na.rm = TRUE), by = "month"), fill = list(n = 0))
     }
     
-    Cold_ts <- ts(df_Cold$n, start = c(2000, 1), frequency = 12)
+    Cold_ts <- ts(df_Cold$n, start = c(2000, 1), end = c(2023, 12), frequency = 12)
     
     # Décomposer et afficher le graphique
     decomp_Cold <- decompose(Cold_ts)   
@@ -206,17 +188,18 @@ df_catastrophes_filtrees <- df_catastrophes_filtrees |>
   summarize(count = n()) |>
   arrange(Date)
 
-
+df_catastrophes_filtrees <- df_catastrophes_filtrees |> # si je ne fais pas ça j'ai un problème avec un valeure qui se balade
+  filter(Date != "2000-NA")
 
 ts_catastrophes_filtrees_2000_2025 <- ts(df_catastrophes_filtrees$count, start = c(2000, 1), frequency = 12)
 
 plot(ts_catastrophes_filtrees_2000_2025)
 
-ts_catastrophes_2020_2023 <- ts(df_catastrophes_filtrees$count, start = c(2000, 1), end = c(2023, 12), frequency = 12)
+ts_catastrophes_2000_2023 <- ts(df_catastrophes_filtrees$count, start = c(2000, 1), end = c(2023, 12), frequency = 12)
 # on s'arrête en 2023 car toutes les données ne vont pas jusqu'en 2025, 
 # mais elles vont toutes jusqu'en 2023
 
-plot(ts_catastrophes_2020_2023)
+plot(ts_catastrophes_2000_2023)
 
 
 
