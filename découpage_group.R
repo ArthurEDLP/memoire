@@ -201,7 +201,8 @@ ts_catastrophes_2000_2023 <- ts(df_catastrophes_filtrees$count, start = c(2000, 
 
 plot(ts_catastrophes_2000_2023)
 
-
+# write.xlsx(df_catastrophes_filtrees, "catastrophes_annuelle.xlsx")
+# write.xlsx(catastrophes_filtrees, "catastrophes_filtrees.xlsx")
 
 
 
