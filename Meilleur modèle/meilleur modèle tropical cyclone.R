@@ -8,24 +8,24 @@ library(gridExtra)
 library(scales)
 
 
-ts_Cold_wave_2022 <- ts(ts_Cold_wave, start = c(2000, 1), end = c(2022, 12), frequency = 12)
+ts_tropical_cyclone_2022 <- ts(ts_tropical_cyclone, start = c(2000, 1), end = c(2022, 12), frequency = 12)
 
 
 
 # Saisonnalité  ----
 
-ts_Cold_wave_2022 |> 
+ts_tropical_cyclone_2022 |> 
   decompose(, type = "additive") |> 
   plot()
 
-ts_Cold_wave_2022 |> 
+ts_tropical_cyclone_2022 |> 
   decompose(, type = "multiplicative") |> 
   plot()
 
 
 # Test saisonnalité
 
-summary(regarima_x13(ts_Cold_wave_2022, spec ="RG5c"))
+summary(regarima_x13(ts_tropical_cyclone_2022, spec ="RG5c"))
 
 # Additive
 
@@ -37,13 +37,13 @@ summary(regarima_x13(ts_Cold_wave_2022, spec ="RG5c"))
 #### naïves ----
 par(mfcol=c(1,1))
 
-pred_naive <- naive(ts_Cold_wave_2022, h=12)
+pred_naive <- naive(ts_tropical_cyclone_2022, h=12)
 show(pred_naive)
 plot(pred_naive)
 
 ####  StructTS ----
 
-fitsts = StructTS(ts_Cold_wave_2022)
+fitsts = StructTS(ts_tropical_cyclone_2022)
 plot(cbind(fitted(fitsts), residuals(fitsts)))
 show(fitsts)
 
@@ -52,23 +52,15 @@ prevsts <- forecast(fitsts, 12)
 show(prevsts) 
 plot(prevsts)
 
-# Variances:
-#   level      slope       seas    epsilon  
-# 8.831e-01  6.192e-05  0.000e+00  2.305e+00 
 
-##### Commentaire:
-# La saisonnalité n'est pas source de variance significative dans cette série
-# Le niveau et la pente sont relativement stables à long terme
-# Les erreurs/résidus représente une grande partie de la variabilité,
-# ce qui signifie que la série n'est pas parfaitement expliquée par le modèle.
 
 #### stlm ----
 
-decomp = stl(ts_Cold_wave_2022, s.window="periodic")
+decomp = stl(ts_tropical_cyclone_2022, s.window="periodic")
 # show(decomp)
 plot(decomp)
 
-fitstl = stlm(ts_Cold_wave_2022)
+fitstl = stlm(ts_tropical_cyclone_2022)
 
 prevstl <- forecast(fitstl,12) #période d'une année
 
@@ -78,16 +70,13 @@ plot(prevstl) # en annexe
 
 summary(prevstl)
 
-##### Commentaire:
-
-# AIC 1911.477    / AICc 1911.562   / BIC 1922.466 
 
 
 #### X13 ----
 
 myspec <- x13_spec("RSA5c")
 
-mysax13 <- x13(ts_Cold_wave_2022, myspec)
+mysax13 <- x13(ts_tropical_cyclone_2022, myspec)
 
 summary(mysax13$regarima)
 
@@ -106,23 +95,6 @@ forecast_x13 <- forecast(sa_series, h = 12)
 # Visualiser le résultat
 plot(forecast_x13)
 
-## Commentaire
-
-# y = regression model + arima (0, 0, 0, 1, 0, 1)
-# Pas de composante AR (AutoRegressive) ou MA (Moving Average) dans la partie non saisonnière
-# composante saisonnière autoregressive d’ordre 1 (BPhi(1)) et une composante saisonnière moyenne mobile d’ordre 1 (BTheta(1))
-# BPhi(1) = -0.744 (p < 2e-16) :
-# # forte dépendance saisonnière : la valeur d’un mois donné est corrélée négativement à celle du même mois de l’année précédente
-# # structure cyclique nette
-# BTheta(1) = -0.193  (p = 0.0213)
-# # significatif mais modérément, des chocs saisonniers passés
-# Aucun ajustement pour les jours ouvrés, les années bissextiles ou Pâques
-
-
-
-# Le modèle met en évidence une saisonnalité forte, surtout expliquée par la dépendance autorégressive saisonnière.
-# Les composants non saisonniers soient absents indique que la série est principalement menée par des dynamiques saisonnières.
-
 
 
 #-- 5. 1. 2. Prédiction sur les méthodes de lissage exponentiel ----------
@@ -131,7 +103,7 @@ plot(forecast_x13)
 #### Holt-winters ----
 
 # Modèle Holt-Winters (additif par défaut)
-fit_hw <- HoltWinters(ts_Cold_wave_2022, seasonal = "add")
+fit_hw <- HoltWinters(ts_tropical_cyclone_2022, seasonal = "add")
 fit_hw
 
 # Calcul de l'AIC
@@ -142,7 +114,7 @@ residuals <- residuals(fit_hw)
 mse <- mean(residuals^2)
 
 # Estimation de la vraisemblance
-n <- length(ts_Cold_wave_2022)  # nombre d'observations
+n <- length(ts_tropical_cyclone_2022)  # nombre d'observations
 k <- length(coef(fit_hw))  # nombre de paramètres
 log_likelihood <- -(n/2) * log(2 * pi * mse) - (1/2) * sum(residuals^2 / mse)
 
@@ -161,60 +133,34 @@ pred_hw <- forecast(fit_hw, h = 12)
 plot(pred_hw)
 
 
-# ne marche pas à cause des 0 et outliers
-
 #### ETS ----
 
-fitets <- ets(ts_Cold_wave_2022, ic = "aic") # pour avoir le meilleur AIC
+fitets <- ets(ts_tropical_cyclone_2022, ic = "aic") # pour avoir le meilleur AIC
 show(fitets)
 plot(fitets)
 
+plot(fitets$residuals)
 
 prevets <- forecast(fitets,12)
 show(prevets)
 plot(prevets)
 
-##### Commentaire:
-
-## ETS(A,N,A)
-## Error : A = composante additive
-## Trend: N = pas de tendance
-## Seasonal : A = composante additive
-
-## alpha : contrôle la sensibilité du modèle aux changements dans le niveau
-## alpha = 0.2059  : Une valeur proche de 1 nous informe que le modèle
-## réactif aux changements récents dans le niveau.
-## ==> Le modèle prendra en compte les variations récentes dans le niveau, mais il n'ajustera pas radicalement
-
-## gamma : contrôle la sensibilité du modèle aux changements dans la composante saisonnière
-## gamma = 1e-04 : Une valeur très faible indique que le modèle est
-## très peu réactif aux changements dans la saisonnalité.
-## Cela signifie que le modèle met beaucoup de temps à ajuster la composante saisonnière en réponse aux nouvelles données.
-## ==> peu susceptible de changer rapidement
-
-# AIC 2375.470    / AICc 2377.148   / BIC 2431.127  
 
 #### TBATS ----
 
-fit_tbats <- tbats(ts_Cold_wave_2022)
+fit_tbats <- tbats(ts_tropical_cyclone_2022)
 show(fit_tbats)
 plot(fit_tbats)
 
 prev_TBATS <- forecast(fit_tbats, h=12)
 plot_prev_TBATS <- plot(prev_TBATS)
 
-## Commentaire:
-# Les coefficients AR et MA suggérant un comportement de type "mémoire longue"
-# càd que les erreurs passées peuvent avoir un impact prolongé sur les prévisions futures
-# Gamma-1 est faible, indiquant que la composante saisonnière de longueur 12
-# n'est pas très sensible aux changements récents dans la saisonnalité.
-# AIC: 2350.799
+
 
 #### ADAM ETS ----
 
 
-fit_ADAM_ETS <- auto.adam(ts_Cold_wave_2022, model = "ZZZ", lags = c(1, 12), select = TRUE)
-# ZZZ car je ne spécifie rien (tendance, saisonnalité, erreur)
+fit_ADAM_ETS <- auto.adam(ts_tropical_cyclone_2022, model = "ANN", lags = c(1, 12), select = TRUE)
 fit_ADAM_ETS
 # Voir les paramètres estimés
 coef(fit_ADAM_ETS)
@@ -245,11 +191,11 @@ plot(prev_ADAM_ETS)
 
 #### ADAM ETS + SARIMA ----
 
-fitadam3 <- auto.adam(ts_Cold_wave_2022,model = "NAA", lags=c(1,1,12),
-                      orders=list(ar=c(3,3), i=(2), ma=c(3,3), select=TRUE))
+fitadam3 <- auto.adam(ts_tropical_cyclone_2022, model = "ANN", lags=c(1,12), orders=list(ar=c(3,3), i=(2), ma=c(3,3), select=TRUE))
+
 
 fitadam3
-summary(fitadam3)
+
 
 par(mfcol=c(2,2))
 plot(fitadam3)
@@ -264,7 +210,7 @@ plot(prev_AES)
 
 #### SSARIMA ----
 
-fit_SSARIMA <- auto.ssarima(ts_Cold_wave_2022, lags=c(1,12), orders=list(ar=c(3,3), i=(2), ma=c(3,3), select=TRUE))
+fit_SSARIMA <- auto.ssarima(ts_tropical_cyclone_2022, lags=c(1,12), orders=list(ar=c(3,3), i=(2), ma=c(3,3), select=TRUE))
 fit_SSARIMA
 
 par(mfcol=c(2,2))
@@ -280,7 +226,7 @@ plot(prev_SSARIMA)
 
 #-- 5. 1. 3. Modèle SARIMA(p, d, q)(P, D, Q)[12] ----------
 
-fit_sarima <- auto.arima(ts_Cold_wave_2022, seasonal = TRUE)
+fit_sarima <- auto.arima(ts_tropical_cyclone_2022, seasonal = TRUE)
 
 # Affichage du modèle
 summary(fit_sarima)
@@ -296,14 +242,13 @@ plot(prev_SARIMA)
 #-- 5. 2.  le meilleur modèle d’après les critères AIC et AICc ----------
 
 
-# ADAM ETS = -884.9907
 
 
 #---------- 6. Représenter graphiquement l’évolution des prévisions des différents modèles ----------
- 
-ts_Cold_wave_2023 <- ts(ts_Cold_wave_2022, 
-                               start = c(2023, 1), end =c(2023, 12),
-                               frequency = 12)
+
+ts_tropical_cyclone_2023 <- ts(ts_tropical_cyclone_2022, 
+                       start = c(2023, 1), end =c(2023, 12),
+                       frequency = 12)
 
 
 # Fonction mise à jour : transforme la date en format mois
@@ -336,16 +281,16 @@ dfs <- list(
 df_all <- bind_rows(dfs)
 
 # Transformer la série temporelle en data frame pour ggplot
-ts_Cold_wave_2023_df <- data.frame(
-  date = as.Date(time(ts_Cold_wave_2023)),
-  value = as.numeric(ts_Cold_wave_2023),
+ts_tropical_cyclone_2023_df <- data.frame(
+  date = as.Date(time(ts_tropical_cyclone_2023)),
+  value = as.numeric(ts_tropical_cyclone_2023),
   model = "Observed Data"
 )
 
 # Affichage avec mois formatés
 ggplot() +
   geom_line(data = df_all, aes(x = date, y = value, color = model), size = 1) +
-  geom_line(data = ts_Cold_wave_2023_df, aes(x = date, y = value),
+  geom_line(data = ts_tropical_cyclone_2023_df, aes(x = date, y = value),
             linetype = "dashed", color = "black", size = 1) +
   labs(title = "Prévisions sur 12 mois par modèle",
        x = "Mois", y = "Valeur prévue", color = "Modèle") +
@@ -360,7 +305,7 @@ ggplot() +
 ## MSE & R²OOS
 
 # Exemple de données (à remplacer par vos données réelles)
-actual_values <- ts_Cold_wave_2023
+actual_values <- ts_tropical_cyclone_2023
 
 # Liste des prévisions pour chaque modèle
 forecasts <- list(
